@@ -1,5 +1,5 @@
-streamlit==1.37.1
-python-dotenv==1.0.1
+streamlit
+python-dotenv
 langchain==0.2.11
 langchain-community==0.2.9
 langchain-core==0.2.24
