@@ -29,7 +29,7 @@ os.makedirs(os.path.dirname(VSTORE_DIR), exist_ok=True)
 
 # Embeddings (free, no key needed). This downloads the model once on first run.
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL,model_kwargs={"device": "cpu"})
 
 # LLM on Groq (free tier)
 llm = ChatGroq(model="deepseek-r1-distill-llama-70b", api_key=GROQ_API_KEY)
