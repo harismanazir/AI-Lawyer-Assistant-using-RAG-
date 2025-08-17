@@ -2,8 +2,13 @@ services:
   - type: web
     name: ai-lawyer
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: streamlit run app.py --server.port $PORT --server.address 0.0.0.0
+    plan: free
+    buildCommand: "pip install --no-cache-dir -r requirements.txt"
+    startCommand: "streamlit run app.py --server.port $PORT --server.address 0.0.0.0"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: GROQ_API_KEY
-        sync: false   # You’ll add this securely in Render dashboard
+        sync: false   # Add value in Render dashboard → Environment → Add Environment Variable
+      - key: COHERE_API_KEY
+        sync: false   # Add value in Render dashboard → Environment → Add Environment Variable
