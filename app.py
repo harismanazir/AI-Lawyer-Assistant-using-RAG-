@@ -2,13 +2,16 @@ import os
 import streamlit as st
 from dotenv import load_dotenv
 
-from langchain_community.document_loaders import PDFPlumberLoader
+# from langchain_community.document_loaders import PDFPlumberLoader
+from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_huggingface import HuggingFaceEmbeddings
+# from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_groq import ChatGroq
+from langchain_cohere import CohereEmbeddings
+
 import re
 
 # ========== Setup ==========
@@ -16,6 +19,7 @@ load_dotenv()  # On Render, GROQ_API_KEY should be set as an env var in the dash
 
 # Minimal sanity check for key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY")
 if not GROQ_API_KEY:
     st.warning(
         "GROQ_API_KEY not found. Set it in Render's dashboard (Environment → Add Environment Variable)."
@@ -28,9 +32,17 @@ os.makedirs(PDFS_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(VSTORE_DIR), exist_ok=True)
 
 # Embeddings (free, no key needed). This downloads the model once on first run.
-EMBEDDING_MODEL = "sentence-transformers/paraphrase-MiniLM-L3-v2"
 
-embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL,model_kwargs={"device": "cpu"})
+
+
+embeddings = CohereEmbeddings(
+    model="embed-english-light-v3.0",
+    cohere_api_key=os.getenv("COHERE_API_KEY")
+)
+
+# EMBEDDING_MODEL = "sentence-transformers/paraphrase-MiniLM-L3-v2"
+
+# embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL,model_kwargs={"device": "cpu"})
 
 # LLM on Groq (free tier)
 llm = ChatGroq(model="deepseek-r1-distill-llama-70b", api_key=GROQ_API_KEY)
@@ -54,9 +66,14 @@ chain = prompt | llm | parser
 
 # ========== Helpers ==========
 
+# def load_pdf(file_path):
+#     loader = PDFPlumberLoader(file_path)
+#     return loader.load()
+
 def load_pdf(file_path):
-    loader = PDFPlumberLoader(file_path)
+    loader = PyPDFLoader(file_path)
     return loader.load()
+
 
 
 def split_docs(documents, chunk_size=2000, chunk_overlap=100):
@@ -94,7 +111,8 @@ def clean_response(response: str) -> str:
 # ========== UI ==========
 st.set_page_config(page_title="AI Lawyer (Free) — Groq + HF", page_icon="⚖️")
 st.title("⚖️ AI Lawyer (Free) — RAG on your PDFs")
-st.caption("LLM: Groq DeepSeek R1 70B • Embeddings: all-MiniLM-L6-v2 • Vector DB: FAISS • Host: Render")
+st.caption("LLM: Groq DeepSeek R1 70B • Embeddings: Cohere embed-english-light-v3.0 • Vector DB: FAISS")
+
 
 # Sidebar display options
 a, b = st.columns([1, 3])
